@@ -1,0 +1,10 @@
+{
+  "appId": "com.tiktokdownloader.app",
+  "appName": "TikTok Downloader",
+  "webDir": "www",
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}
