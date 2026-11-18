@@ -1,6 +1,6 @@
 {
-  "appId": "com.tiktokdownloader.app",
-  "appName": "TikTok Downloader",
+  "appId": "com.mediadownloader.app",
+  "appName": "MediaVault HD",
   "webDir": "www",
   "plugins": {
     "CapacitorHttp": {
