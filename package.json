@@ -1,9 +1,10 @@
 {
   "name": "tiktok-downloader-apk",
-  "version": "1.0.0",
-  "description": "TikTok HD & MP3 Downloader Android App",
+  "version": "2.0.0",
+  "description": "Universal Video & MP3 Downloader Android App",
   "dependencies": {
     "@capacitor/android": "^6.1.2",
+    "@capacitor/app": "^6.0.1",
     "@capacitor/core": "^6.1.2",
     "@capacitor/filesystem": "^6.0.1"
   },
