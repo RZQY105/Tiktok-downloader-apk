@@ -1,4 +1,3 @@
-// Endpoint API publik untuk mengambil metadata & link TikTok
 const API_ENDPOINT = "https://www.tikwm.com/api/";
 
 const urlInput = document.getElementById("tiktokUrl");
@@ -23,9 +22,9 @@ const progressFill = document.getElementById("progressFill");
 const progressText = document.getElementById("progressText");
 
 let currentMediaData = null;
-let selectedFormat = "video"; // 'video' atau 'audio'
+let selectedFormat = "video";
 
-// 1. Tombol Tempel (Paste otomatis dari clipboard HP)
+// 1. Tombol Tempel Clipboard
 pasteBtn.addEventListener("click", async () => {
   try {
     const text = await navigator.clipboard.readText();
@@ -34,11 +33,11 @@ pasteBtn.addEventListener("click", async () => {
       hideError();
     }
   } catch (err) {
-    showError("Izin clipboard ditolak browser. Silakan tempel manual.");
+    showError("Izin clipboard ditolak. Silakan tempel link secara manual.");
   }
 });
 
-// 2. Ganti Tab Video / Audio
+// 2. Tab Video / Audio
 tabBtns.forEach((btn) => {
   btn.addEventListener("click", () => {
     tabBtns.forEach((b) => b.classList.remove("active"));
@@ -57,12 +56,12 @@ tabBtns.forEach((btn) => {
   });
 });
 
-// 3. Proses Link TikTok
+// 3. Ambil Metadata Video
 fetchBtn.addEventListener("click", async () => {
   const link = urlInput.value.trim();
 
   if (!link || !link.includes("tiktok.com")) {
-    showError("Masukkan link TikTok yang valid (contoh: https://vt.tiktok.com/...)");
+    showError("Masukkan link TikTok yang valid.");
     return;
   }
 
@@ -76,7 +75,7 @@ fetchBtn.addEventListener("click", async () => {
     const result = await response.json();
 
     if (result.code !== 0 || !result.data) {
-      throw new Error(result.msg || "Video tidak ditemukan atau akun bersifat privat.");
+      throw new Error(result.msg || "Video tidak ditemukan atau akun privat.");
     }
 
     currentMediaData = result.data;
@@ -89,7 +88,6 @@ fetchBtn.addEventListener("click", async () => {
   }
 });
 
-// 4. Tampilkan Pratinjau Video
 function renderResult(data) {
   thumbImg.src = data.cover;
   authorName.textContent = `@${data.author.unique_id || data.author.nickname}`;
@@ -102,7 +100,7 @@ function renderResult(data) {
   resultCard.classList.remove("hidden");
 }
 
-// 5. Eksekusi Download Langsung ke HP
+// 4. Tombol Download
 downloadBtn.addEventListener("click", async () => {
   if (!currentMediaData) return;
 
@@ -134,61 +132,67 @@ downloadBtn.addEventListener("click", async () => {
   await saveToPhone(downloadUrl, filename);
 });
 
-// Fungsi Download dengan Blob Stream + Progress Bar
+// 5. Unduh & Simpan ke Galeri Android
 async function saveToPhone(url, filename) {
   downloadBtn.disabled = true;
+  hideError();
   progressWrapper.classList.remove("hidden");
-  progressFill.style.width = "0%";
-  progressText.textContent = "Menghubungkan...";
+  progressFill.style.width = "20%";
+  progressText.textContent = "Mengunduh dari server TikTok...";
 
   try {
     const response = await fetch(url);
-    if (!response.ok) throw new Error("Gagal mengunduh file.");
+    if (!response.ok) throw new Error("Gagal mengunduh media.");
 
-    const contentLength = response.headers.get("content-length");
-    const total = contentLength ? parseInt(contentLength, 10) : 0;
-    let loaded = 0;
+    progressFill.style.width = "60%";
+    const blob = await response.blob();
+    const mimeType = filename.endsWith(".mp3") ? "audio/mpeg" : "video/mp4";
 
-    const reader = response.body.getReader();
-    const chunks = [];
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.MediaSaver) {
+      progressFill.style.width = "85%";
+      progressText.textContent = "Menyimpan ke Galeri...";
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+      const base64Data = await blobToBase64(blob);
+      const res = await window.Capacitor.Plugins.MediaSaver.saveMedia({
+        base64Data,
+        fileName: filename,
+        mimeType,
+      });
 
-      chunks.push(value);
-      loaded += value.length;
+      progressFill.style.width = "100%";
+      progressText.textContent = `Tersimpan di Galeri (${res.folder}/${filename})`;
+    } else {
+      // Fallback jika dibuka di browser biasa
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
 
-      if (total > 0) {
-        const percent = Math.round((loaded / total) * 100);
-        progressFill.style.width = `${percent}%`;
-        progressText.textContent = `Mengunduh: ${percent}%`;
-      } else {
-        progressText.textContent = `Mengunduh: ${(loaded / (1024 * 1024)).toFixed(1)} MB`;
-      }
+      progressFill.style.width = "100%";
+      progressText.textContent = "Selesai! Tersimpan di folder Download.";
     }
-
-    const blob = new Blob(chunks, {
-      type: filename.endsWith(".mp3") ? "audio/mpeg" : "video/mp4",
-    });
-
-    const blobUrl = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-    progressText.textContent = "Selesai! Tersimpan di folder Download HP.";
   } catch (err) {
-    // Fallback jika server CDN memblokir fetch CORS
-    progressText.textContent = "Membuka unduhan langsung...";
-    window.open(url, "_blank");
+    showError("Gagal menyimpan: " + (err.message || err));
+    progressWrapper.classList.add("hidden");
   } finally {
     downloadBtn.disabled = false;
   }
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result.split(",")[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 function showError(msg) {
