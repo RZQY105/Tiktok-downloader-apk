@@ -1,12 +1,11 @@
 {
-  "name": "tiktok-downloader-apk",
+  "name": "all-media-downloader-apk",
   "version": "2.0.0",
-  "description": "Universal Video & MP3 Downloader Android App",
+  "description": "Multi-Platform HD Video & MP3 Downloader",
   "dependencies": {
     "@capacitor/android": "^6.1.2",
     "@capacitor/app": "^6.0.1",
-    "@capacitor/core": "^6.1.2",
-    "@capacitor/filesystem": "^6.0.1"
+    "@capacitor/core": "^6.1.2"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.1.2"
