@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TikTok HD & MP3 Downloader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <div class="badge">NO WATERMARK • HD • MP3</div>
+      <h1>TikTok <span>Downloader</span></h1>
+      <p>Tempel link TikTok, pilih kualitas video atau audio, dan simpan langsung ke HP.</p>
+    </header>
+
+    <!-- Input Box -->
+    <section class="card input-card">
+      <div class="input-wrapper">
+        <input 
+          type="url" 
+          id="tiktokUrl" 
+          placeholder="Tempel link video TikTok di sini..." 
+          autocomplete="off"
+        />
+        <button type="button" id="pasteBtn" class="btn-paste" title="Tempel dari Clipboard">
+          Tempel
+        </button>
+      </div>
+      <button type="button" id="fetchBtn" class="btn-primary">
+        Proses Link
+      </button>
+      <p id="statusMsg" class="status-msg hidden"></p>
+    </section>
+
+    <!-- Loading Skeleton -->
+    <div id="loader" class="loader hidden">
+      <div class="spinner"></div>
+      <span>Mengambil data video...</span>
+    </div>
+
+    <!-- Result & Download Options -->
+    <section id="resultCard" class="card result-card hidden">
+      <div class="media-info">
+        <img id="thumbImg" src="" alt="Thumbnail Video" />
+        <div class="media-meta">
+          <span id="authorName" class="author">@username</span>
+          <p id="videoTitle" class="title">Judul video akan muncul di sini...</p>
+        </div>
+      </div>
+
+      <!-- Format Selector: Video vs Audio -->
+      <div class="tabs">
+        <button type="button" class="tab-btn active" data-type="video">Video (MP4)</button>
+        <button type="button" class="tab-btn" data-type="audio">Audio (MP3)</button>
+      </div>
+
+      <!-- Quality Options for Video -->
+      <div id="videoOptions" class="options-group">
+        <label class="option-item">
+          <input type="radio" name="quality" value="hd" checked />
+          <div class="option-box">
+            <span class="opt-title">Kualitas HD (1080p)</span>
+            <span class="opt-desc">Tanpa Watermark • Jernih</span>
+          </div>
+        </label>
+
+        <label class="option-item">
+          <input type="radio" name="quality" value="sd" />
+          <div class="option-box">
+            <span class="opt-title">Kualitas SD (Standar)</span>
+            <span class="opt-desc">Tanpa Watermark • Hemat Kuota</span>
+          </div>
+        </label>
+
+        <label class="option-item">
+          <input type="radio" name="quality" value="wm" />
+          <div class="option-box">
+            <span class="opt-title">Original Watermark</span>
+            <span class="opt-desc">Dengan Watermark TikTok</span>
+          </div>
+        </label>
+      </div>
+
+      <!-- Info for Audio -->
+      <div id="audioOptions" class="options-group hidden">
+        <div class="audio-box">
+          <span class="opt-title">Ekstrak Audio Original (MP3)</span>
+          <span id="musicTitle" class="opt-desc">Original Sound - MP3 128kbps</span>
+        </div>
+      </div>
+
+      <!-- Download Progress & Button -->
+      <div id="progressWrapper" class="progress-wrapper hidden">
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <span id="progressText">Mengunduh: 0%</span>
+      </div>
+
+      <button type="button" id="downloadBtn" class="btn-download">
+        Download ke HP
+      </button>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
