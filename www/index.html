@@ -2,109 +2,159 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TikTok HD & MP3 Downloader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MediaVault HD - All-in-One Downloader</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- WELCOME INTRO OVERLAY -->
+  <div id="welcomeOverlay" class="welcome-overlay">
+    <div class="welcome-content">
+      <div class="logo-ring">
+        <svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      </div>
+      <h2>MediaVault <span>HD</span></h2>
+      <p>Simpan Video & Audio dari Semua Platform</p>
+      <div class="intro-platforms">
+        <span>TikTok</span> • <span>YouTube</span> • <span>Pinterest</span> • <span>Web</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="toast hidden"></div>
+
   <main class="container">
+    <!-- HEADER -->
     <header class="header">
-      <div class="badge">NO WATERMARK • HD • MP3</div>
-      <h1>TikTok <span>Downloader</span></h1>
-      <p>Tempel link TikTok, pilih kualitas video atau audio, dan simpan langsung ke HP.</p>
+      <div class="badge">ALL-IN-ONE • HD VIDEO • MP3</div>
+      <h1>MediaVault <span>HD</span></h1>
+      <p>TikTok, YouTube, Pinterest, IG, FB & Link Video Web.</p>
     </header>
 
-    <!-- Input Box -->
-    <section class="card input-card">
-      <div class="input-wrapper">
-        <input 
-          type="url" 
-          id="tiktokUrl" 
-          placeholder="Tempel link video TikTok di sini..." 
-          autocomplete="off"
-        />
-        <button type="button" id="pasteBtn" class="btn-paste" title="Tempel dari Clipboard">
-          Tempel
-        </button>
-      </div>
-      <button type="button" id="fetchBtn" class="btn-primary">
-        Proses Link
+    <!-- NAVIGATION TABS: BERANDA vs RIWAYAT -->
+    <nav class="main-nav">
+      <button type="button" class="nav-btn active" data-view="homeView">
+        Beranda
       </button>
-      <p id="statusMsg" class="status-msg hidden"></p>
-    </section>
+      <button type="button" class="nav-btn" data-view="historyView">
+        Riwayat Unduhan <span id="historyBadge" class="nav-badge">0</span>
+      </button>
+    </nav>
 
-    <!-- Loading Skeleton -->
-    <div id="loader" class="loader hidden">
-      <div class="spinner"></div>
-      <span>Mengambil data video...</span>
+    <!-- ================= VIEW 1: BERANDA ================= -->
+    <div id="homeView" class="view-section">
+      <section class="card input-card">
+        <div class="platform-pills">
+          <span class="pill">TikTok</span>
+          <span class="pill">YouTube</span>
+          <span class="pill">Pinterest</span>
+          <span class="pill">IG / FB</span>
+          <span class="pill">Link Web</span>
+        </div>
+
+        <div class="input-wrapper">
+          <input 
+            type="url" 
+            id="mediaUrl" 
+            placeholder="Tempel link video di sini..." 
+            autocomplete="off"
+          />
+          <button type="button" id="pasteBtn" class="btn-paste">Tempel</button>
+        </div>
+
+        <button type="button" id="fetchBtn" class="btn-primary">
+          Analisis Link
+        </button>
+        <p id="statusMsg" class="status-msg hidden"></p>
+      </section>
+
+      <!-- LOADER -->
+      <div id="loader" class="loader hidden">
+        <div class="spinner"></div>
+        <span id="loaderText">Mendeteksi sumber media...</span>
+      </div>
+
+      <!-- RESULT CARD (Otomatis hilang dari beranda setelah sukses download) -->
+      <section id="resultCard" class="card result-card hidden">
+        <div class="media-info">
+          <img id="thumbImg" src="" alt="Thumbnail" />
+          <div class="media-meta">
+            <div class="meta-top">
+              <span id="platformTag" class="platform-tag">TIKTOK</span>
+              <span id="authorName" class="author">@creator</span>
+            </div>
+            <p id="videoTitle" class="title">Judul media...</p>
+          </div>
+        </div>
+
+        <!-- FORMAT TABS -->
+        <div class="tabs">
+          <button type="button" class="tab-btn active" data-type="video">Video (MP4)</button>
+          <button type="button" class="tab-btn" data-type="audio">Audio (MP3)</button>
+        </div>
+
+        <!-- DYNAMIC VIDEO QUALITY LIST -->
+        <div id="videoOptions" class="options-group"></div>
+
+        <!-- AUDIO INFO -->
+        <div id="audioOptions" class="options-group hidden">
+          <div class="audio-box">
+            <span class="opt-title">Ekstrak Audio Original (MP3)</span>
+            <span id="musicTitle" class="opt-desc">Audio Kualitas Tinggi</span>
+          </div>
+        </div>
+
+        <!-- PROGRESS BAR -->
+        <div id="progressWrapper" class="progress-wrapper hidden">
+          <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+          <span id="progressText">Mempersiapkan: 0%</span>
+        </div>
+
+        <button type="button" id="downloadBtn" class="btn-download">
+          Download ke Galeri HP
+        </button>
+      </section>
     </div>
 
-    <!-- Result & Download Options -->
-    <section id="resultCard" class="card result-card hidden">
-      <div class="media-info">
-        <img id="thumbImg" src="" alt="Thumbnail Video" />
-        <div class="media-meta">
-          <span id="authorName" class="author">@username</span>
-          <p id="videoTitle" class="title">Judul video akan muncul di sini...</p>
+    <!-- ================= VIEW 2: RIWAYAT UNDUHAN ================= -->
+    <div id="historyView" class="view-section hidden">
+      <div class="history-header">
+        <div>
+          <h3>File Tersimpan</h3>
+          <p>Media yang sudah masuk ke penyimpanan perangkat</p>
         </div>
+        <button type="button" id="clearHistoryBtn" class="btn-clear hidden">Hapus Semua</button>
       </div>
 
-      <!-- Format Selector: Video vs Audio -->
-      <div class="tabs">
-        <button type="button" class="tab-btn active" data-type="video">Video (MP4)</button>
-        <button type="button" class="tab-btn" data-type="audio">Audio (MP3)</button>
+      <div id="historyList" class="history-list"></div>
+
+      <div id="emptyHistory" class="empty-state">
+        <p>Belum ada riwayat unduhan.</p>
+        <span>Media yang berhasil diunduh dari Beranda akan otomatis dipindahkan ke sini.</span>
       </div>
-
-      <!-- Quality Options for Video -->
-      <div id="videoOptions" class="options-group">
-        <label class="option-item">
-          <input type="radio" name="quality" value="hd" checked />
-          <div class="option-box">
-            <span class="opt-title">Kualitas HD (1080p)</span>
-            <span class="opt-desc">Tanpa Watermark • Jernih</span>
-          </div>
-        </label>
-
-        <label class="option-item">
-          <input type="radio" name="quality" value="sd" />
-          <div class="option-box">
-            <span class="opt-title">Kualitas SD (Standar)</span>
-            <span class="opt-desc">Tanpa Watermark • Hemat Kuota</span>
-          </div>
-        </label>
-
-        <label class="option-item">
-          <input type="radio" name="quality" value="wm" />
-          <div class="option-box">
-            <span class="opt-title">Original Watermark</span>
-            <span class="opt-desc">Dengan Watermark TikTok</span>
-          </div>
-        </label>
-      </div>
-
-      <!-- Info for Audio -->
-      <div id="audioOptions" class="options-group hidden">
-        <div class="audio-box">
-          <span class="opt-title">Ekstrak Audio Original (MP3)</span>
-          <span id="musicTitle" class="opt-desc">Original Sound - MP3 128kbps</span>
-        </div>
-      </div>
-
-      <!-- Download Progress & Button -->
-      <div id="progressWrapper" class="progress-wrapper hidden">
-        <div class="progress-bar">
-          <div id="progressFill" class="progress-fill"></div>
-        </div>
-        <span id="progressText">Mengunduh: 0%</span>
-      </div>
-
-      <button type="button" id="downloadBtn" class="btn-download">
-        Download ke HP
-      </button>
-    </section>
+    </div>
   </main>
+
+  <!-- EXIT CONFIRMATION MODAL -->
+  <div id="exitModal" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <h3>Keluar dari Aplikasi?</h3>
+      <p>Apakah Anda yakin ingin menutup MediaVault HD?</p>
+      <div class="modal-actions">
+        <button type="button" id="cancelExitBtn" class="btn-modal-cancel">Batal</button>
+        <button type="button" id="confirmExitBtn" class="btn-modal-confirm">Ya, Keluar</button>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
