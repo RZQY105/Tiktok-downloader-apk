@@ -3,155 +3,247 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>MediaVault HD - All-in-One Downloader</title>
+  <title>MediaVault Pro</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- WELCOME INTRO OVERLAY -->
+  <!-- AMBIENT AURORA BACKGROUND -->
+  <div class="ambient-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+  </div>
+
+  <!-- CINEMATIC WELCOME INTRO -->
   <div id="welcomeOverlay" class="welcome-overlay">
-    <div class="welcome-content">
-      <div class="logo-ring">
-        <svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-          <polyline points="7 10 12 15 17 10"></polyline>
-          <line x1="12" y1="15" x2="12" y2="3"></line>
-        </svg>
+    <div class="welcome-inner">
+      <div class="emblem-wrap">
+        <div class="emblem-glow"></div>
+        <div class="emblem-box">
+          <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v12"></path>
+            <path d="m7 11 5 5 5-5"></path>
+            <path d="M5 21h14"></path>
+          </svg>
+          <div class="shimmer-line"></div>
+        </div>
       </div>
-      <h2>MediaVault <span>HD</span></h2>
-      <p>Simpan Video & Audio dari Semua Platform</p>
-      <div class="intro-platforms">
-        <span>TikTok</span> • <span>YouTube</span> • <span>Pinterest</span> • <span>Web</span>
+
+      <div class="welcome-brand">
+        <h1>MediaVault <span>PRO</span></h1>
+        <p>High-Speed Universal Media Studio</p>
+      </div>
+
+      <div class="intro-loader-track">
+        <div class="intro-loader-bar"></div>
       </div>
     </div>
   </div>
 
-  <!-- TOAST NOTIFICATION -->
-  <div id="toast" class="toast hidden"></div>
+  <!-- FLOATING TOAST -->
+  <div id="toast" class="toast hidden">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toastText">Tersimpan</span>
+  </div>
 
-  <main class="container">
-    <!-- HEADER -->
-    <header class="header">
-      <div class="badge">ALL-IN-ONE • HD VIDEO • MP3</div>
-      <h1>MediaVault <span>HD</span></h1>
-      <p>TikTok, YouTube, Pinterest, IG, FB & Link Video Web.</p>
+  <main class="app-shell">
+    <!-- TOP APP BAR -->
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v12"></path>
+            <path d="m7 11 5 5 5-5"></path>
+            <path d="M5 21h14"></path>
+          </svg>
+        </div>
+        <div>
+          <span class="brand-name">MediaVault</span>
+          <span class="brand-tag">PRO</span>
+        </div>
+      </div>
+
+      <div class="engine-pill">
+        <span class="pulse-dot"></span>
+        <span>Stream Turbo</span>
+      </div>
     </header>
 
-    <!-- NAVIGATION TABS: BERANDA vs RIWAYAT -->
-    <nav class="main-nav">
-      <button type="button" class="nav-btn active" data-view="homeView">
-        Beranda
-      </button>
-      <button type="button" class="nav-btn" data-view="historyView">
-        Riwayat Unduhan <span id="historyBadge" class="nav-badge">0</span>
-      </button>
-    </nav>
-
     <!-- ================= VIEW 1: BERANDA ================= -->
-    <div id="homeView" class="view-section">
-      <section class="card input-card">
-        <div class="platform-pills">
-          <span class="pill">TikTok</span>
-          <span class="pill">YouTube</span>
-          <span class="pill">Pinterest</span>
-          <span class="pill">IG / FB</span>
-          <span class="pill">Link Web</span>
-        </div>
+    <section id="homeView" class="view-section">
+      <div class="hero-copy">
+        <h2>Simpan video & audio<br/><span>kualitas asli tanpa batas.</span></h2>
+      </div>
 
-        <div class="input-wrapper">
+      <!-- STUDIO INPUT CARD -->
+      <div class="glass-card input-studio">
+        <div class="input-field-box">
+          <svg class="link-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
           <input 
             type="url" 
             id="mediaUrl" 
-            placeholder="Tempel link video di sini..." 
+            placeholder="Tempel tautan TikTok, YT, Pinterest..." 
             autocomplete="off"
           />
-          <button type="button" id="pasteBtn" class="btn-paste">Tempel</button>
+          <button type="button" id="clearInputBtn" class="btn-icon-clear hidden" aria-label="Hapus">
+            &times;
+          </button>
+          <button type="button" id="pasteBtn" class="btn-paste">
+            Tempel
+          </button>
         </div>
 
         <button type="button" id="fetchBtn" class="btn-primary">
-          Analisis Link
+          <span>Analisis Tautan</span>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
         </button>
-        <p id="statusMsg" class="status-msg hidden"></p>
-      </section>
 
-      <!-- LOADER -->
-      <div id="loader" class="loader hidden">
-        <div class="spinner"></div>
-        <span id="loaderText">Mendeteksi sumber media...</span>
+        <div class="supported-row">
+          <span>Mendukung:</span>
+          <div class="supported-list">
+            <span>TikTok</span>
+            <span>YouTube</span>
+            <span>Pinterest</span>
+            <span>IG / FB</span>
+            <span>Direct Web</span>
+          </div>
+        </div>
+
+        <p id="statusMsg" class="status-msg hidden"></p>
       </div>
 
-      <!-- RESULT CARD (Otomatis hilang dari beranda setelah sukses download) -->
-      <section id="resultCard" class="card result-card hidden">
-        <div class="media-info">
-          <img id="thumbImg" src="" alt="Thumbnail" />
-          <div class="media-meta">
-            <div class="meta-top">
-              <span id="platformTag" class="platform-tag">TIKTOK</span>
-              <span id="authorName" class="author">@creator</span>
+      <!-- ELEGANT LOADER -->
+      <div id="loader" class="loader-box hidden">
+        <div class="orbital-spinner"></div>
+        <span id="loaderText">Mengekstrak aliran media...</span>
+      </div>
+
+      <!-- RESULT CARD (Otomatis hilang setelah download sukses) -->
+      <div id="resultCard" class="glass-card result-card hidden">
+        <div class="media-preview">
+          <img id="thumbImg" src="" alt="Preview" />
+          <div class="media-details">
+            <div class="media-badges">
+              <span id="platformTag" class="source-badge">TIKTOK</span>
+              <span id="authorName" class="creator-text">@creator</span>
             </div>
-            <p id="videoTitle" class="title">Judul media...</p>
+            <p id="videoTitle" class="media-title">Judul media...</p>
           </div>
         </div>
 
-        <!-- FORMAT TABS -->
-        <div class="tabs">
-          <button type="button" class="tab-btn active" data-type="video">Video (MP4)</button>
-          <button type="button" class="tab-btn" data-type="audio">Audio (MP3)</button>
+        <!-- FORMAT SEGMENTED CONTROL -->
+        <div class="segmented-control">
+          <button type="button" class="seg-btn active" data-type="video">Video MP4</button>
+          <button type="button" class="seg-btn" data-type="audio">Audio MP3</button>
         </div>
 
-        <!-- DYNAMIC VIDEO QUALITY LIST -->
-        <div id="videoOptions" class="options-group"></div>
+        <!-- QUALITY OPTIONS -->
+        <div id="videoOptions" class="quality-list"></div>
 
         <!-- AUDIO INFO -->
-        <div id="audioOptions" class="options-group hidden">
-          <div class="audio-box">
-            <span class="opt-title">Ekstrak Audio Original (MP3)</span>
-            <span id="musicTitle" class="opt-desc">Audio Kualitas Tinggi</span>
+        <div id="audioOptions" class="quality-list hidden">
+          <div class="quality-card selected-static">
+            <div class="q-left">
+              <span class="q-title">Master Audio Original</span>
+              <span id="musicTitle" class="q-desc">Ekstrak suara jernih format MP3</span>
+            </div>
+            <span class="q-tag">MP3</span>
           </div>
         </div>
 
-        <!-- PROGRESS BAR -->
-        <div id="progressWrapper" class="progress-wrapper hidden">
-          <div class="progress-bar">
-            <div id="progressFill" class="progress-fill"></div>
+        <!-- REAL-TIME TURBO PROGRESS -->
+        <div id="progressWrapper" class="progress-panel hidden">
+          <div class="progress-meta">
+            <span id="progressStatus">Mengunduh...</span>
+            <span id="progressSpeed" class="mono-stat">0.0 MB/s</span>
           </div>
-          <span id="progressText">Mempersiapkan: 0%</span>
+          <div class="progress-track">
+            <div id="progressFill" class="progress-bar-fill"></div>
+          </div>
         </div>
 
         <button type="button" id="downloadBtn" class="btn-download">
-          Download ke Galeri HP
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span id="downloadBtnLabel">Simpan ke Galeri</span>
         </button>
-      </section>
-    </div>
+      </div>
+    </section>
 
     <!-- ================= VIEW 2: RIWAYAT UNDUHAN ================= -->
-    <div id="historyView" class="view-section hidden">
-      <div class="history-header">
+    <section id="historyView" class="view-section hidden">
+      <div class="section-head">
         <div>
-          <h3>File Tersimpan</h3>
-          <p>Media yang sudah masuk ke penyimpanan perangkat</p>
+          <h3>Riwayat Unduhan</h3>
+          <p>Tersimpan otomatis di penyimpanan perangkat</p>
         </div>
-        <button type="button" id="clearHistoryBtn" class="btn-clear hidden">Hapus Semua</button>
+        <button type="button" id="clearHistoryBtn" class="btn-ghost-danger hidden">Bersihkan</button>
       </div>
 
-      <div id="historyList" class="history-list"></div>
+      <div id="historyList" class="history-stack"></div>
 
-      <div id="emptyHistory" class="empty-state">
-        <p>Belum ada riwayat unduhan.</p>
-        <span>Media yang berhasil diunduh dari Beranda akan otomatis dipindahkan ke sini.</span>
+      <div id="emptyHistory" class="empty-box">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </div>
+        <h4>Belum Ada Riwayat</h4>
+        <p>Media yang selesai diunduh dari Beranda akan otomatis dipindahkan ke halaman ini.</p>
       </div>
-    </div>
+    </section>
   </main>
 
-  <!-- EXIT CONFIRMATION MODAL -->
-  <div id="exitModal" class="modal-backdrop hidden">
-    <div class="modal-box">
-      <h3>Keluar dari Aplikasi?</h3>
-      <p>Apakah Anda yakin ingin menutup MediaVault HD?</p>
-      <div class="modal-actions">
-        <button type="button" id="cancelExitBtn" class="btn-modal-cancel">Batal</button>
-        <button type="button" id="confirmExitBtn" class="btn-modal-confirm">Ya, Keluar</button>
+  <!-- FLOATING GLASS BOTTOM DOCK -->
+  <nav class="bottom-dock">
+    <button type="button" class="dock-btn active" data-view="homeView">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span>Beranda</span>
+    </button>
+
+    <button type="button" class="dock-btn" data-view="historyView">
+      <div class="dock-icon-wrap">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span id="historyBadge" class="dock-badge hidden">0</span>
+      </div>
+      <span>Riwayat</span>
+    </button>
+  </nav>
+
+  <!-- MODERN BOTTOM SHEET EXIT CONFIRMATION -->
+  <div id="exitSheet" class="sheet-scrim hidden">
+    <div class="bottom-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-icon">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </div>
+      <h3>Tutup MediaVault Pro?</h3>
+      <p>Pastikan tidak ada proses unduhan yang sedang berjalan sebelum keluar dari aplikasi.</p>
+      <div class="sheet-actions">
+        <button type="button" id="cancelExitBtn" class="btn-sheet-secondary">Tetap di Sini</button>
+        <button type="button" id="confirmExitBtn" class="btn-sheet-danger">Keluar Aplikasi</button>
       </div>
     </div>
   </div>
