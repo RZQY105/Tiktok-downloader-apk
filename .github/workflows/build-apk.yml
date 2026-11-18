@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Multi-Platform APK
 
 on:
   push:
@@ -27,12 +27,13 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Generate Android Project & MediaStore Plugin
+      - name: Generate Android Project & Native Plugins
         run: |
           npx cap add android
+          mkdir -p android/app/src/main/java/com/mediadownloader/app
 
-          cat << 'EOF' > android/app/src/main/java/com/tiktokdownloader/app/MediaSaverPlugin.java
-          package com.tiktokdownloader.app;
+          cat << 'EOF' > android/app/src/main/java/com/mediadownloader/app/MediaSaverPlugin.java
+          package com.mediadownloader.app;
 
           import android.content.ContentValues;
           import android.media.MediaScannerConnection;
@@ -78,17 +79,17 @@ jobs:
                               collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
                               values.put(MediaStore.Audio.Media.DISPLAY_NAME, fileName);
                               values.put(MediaStore.Audio.Media.MIME_TYPE, mimeType);
-                              values.put(MediaStore.Audio.Media.RELATIVE_PATH, Environment.DIRECTORY_MUSIC + "/TikTokDownloader");
+                              values.put(MediaStore.Audio.Media.RELATIVE_PATH, Environment.DIRECTORY_MUSIC + "/MediaDownloader");
                           } else {
                               collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
                               values.put(MediaStore.Video.Media.DISPLAY_NAME, fileName);
                               values.put(MediaStore.Video.Media.MIME_TYPE, mimeType);
-                              values.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/TikTokDownloader");
+                              values.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/MediaDownloader");
                           }
 
                           Uri itemUri = getContext().getContentResolver().insert(collection, values);
                           if (itemUri == null) {
-                              call.reject("Gagal membuat file di MediaStore");
+                              call.reject("Gagal membuat entri MediaStore");
                               return;
                           }
 
@@ -102,7 +103,7 @@ jobs:
                           File dir = Environment.getExternalStoragePublicDirectory(
                               isAudio ? Environment.DIRECTORY_MUSIC : Environment.DIRECTORY_MOVIES
                           );
-                          File appDir = new File(dir, "TikTokDownloader");
+                          File appDir = new File(dir, "MediaDownloader");
                           if (!appDir.exists()) appDir.mkdirs();
 
                           File outFile = new File(appDir, fileName);
@@ -121,19 +122,20 @@ jobs:
 
                       JSObject ret = new JSObject();
                       ret.put("saved", true);
-                      ret.put("folder", isAudio ? "Music/TikTokDownloader" : "Movies/TikTokDownloader");
+                      ret.put("folder", isAudio ? "Music/MediaDownloader" : "Movies/MediaDownloader");
                       call.resolve(ret);
                   } catch (Exception e) {
-                      call.reject("Error simpan media: " + e.getMessage());
+                      call.reject("Gagal simpan file: " + e.getMessage());
                   }
               }
           }
           EOF
 
-          cat << 'EOF' > android/app/src/main/java/com/tiktokdownloader/app/MainActivity.java
-          package com.tiktokdownloader.app;
+          cat << 'EOF' > android/app/src/main/java/com/mediadownloader/app/MainActivity.java
+          package com.mediadownloader.app;
 
           import android.os.Bundle;
+          import android.webkit.WebSettings;
           import com.getcapacitor.BridgeActivity;
 
           public class MainActivity extends BridgeActivity {
@@ -141,6 +143,10 @@ jobs:
               public void onCreate(Bundle savedInstanceState) {
                   registerPlugin(MediaSaverPlugin.class);
                   super.onCreate(savedInstanceState);
+                  if (this.bridge != null && this.bridge.getWebView() != null) {
+                      WebSettings settings = this.bridge.getWebView().getSettings();
+                      settings.setMediaPlaybackRequiresUserGesture(false);
+                  }
               }
           }
           EOF
@@ -157,5 +163,5 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TikTok-Downloader-APK
+          name: MediaVault-HD-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
