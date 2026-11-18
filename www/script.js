@@ -1,129 +1,112 @@
 // =========================================================
-// 1. WELCOME INTRO & ELEGANT SYNTHESIZED CHIME (WEB AUDIO API)
+// 1. CINEMATIC INTRO & WARM POLYPHONIC CHIME
 // =========================================================
 const welcomeOverlay = document.getElementById("welcomeOverlay");
-let introSoundPlayed = false;
+let introPlayed = false;
 
-function playElegantChime() {
-  if (introSoundPlayed) return;
+function playWarmIntroSound() {
+  if (introPlayed) return;
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
 
     const ctx = new AudioCtx();
-    if (ctx.state === "suspended") {
-      ctx.resume();
-    }
+    if (ctx.state === "suspended") ctx.resume();
 
-    // Nada arpeggio harmonik Cmaj9 (elegan, modern, lembut)
-    const notes = [523.25, 659.25, 783.99, 987.77, 1174.66];
+    // Warm Rhodes-like Harmonic Chord (Fmaj9 -> Cmaj9 shimmer)
+    const freqs = [349.23, 440.00, 523.25, 659.25, 783.99];
     const now = ctx.currentTime;
 
-    notes.forEach((freq, idx) => {
+    freqs.forEach((f, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
+      osc.type = i % 2 === 0 ? "sine" : "triangle";
+      osc.frequency.setValueAtTime(f, now + i * 0.06);
 
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, now + idx * 0.085);
-
-      gain.gain.setValueAtTime(0.0001, now + idx * 0.085);
-      gain.gain.exponentialRampToValueAtTime(0.09, now + idx * 0.085 + 0.04);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.085 + 1.1);
+      gain.gain.setValueAtTime(0.0001, now + i * 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.065, now + i * 0.06 + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.06 + 1.35);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
 
-      osc.start(now + idx * 0.085);
-      osc.stop(now + idx * 0.085 + 1.15);
+      osc.start(now + i * 0.06);
+      osc.stop(now + i * 0.06 + 1.4);
     });
-
-    introSoundPlayed = true;
-  } catch (e) {
-    // Abaikan jika perangkat dalam mode senyap ketat
-  }
+    introPlayed = true;
+  } catch (e) {}
 }
 
 window.addEventListener("DOMContentLoaded", () => {
   renderHistory();
-  playElegantChime();
-
+  playWarmIntroSound();
   setTimeout(() => {
     welcomeOverlay.classList.add("fade-out");
-  }, 2200);
+  }, 2000);
 });
 
 // =========================================================
-// 2. EXIT CONFIRMATION (ANDROID BACK BUTTON HANDLER)
+// 2. BOTTOM SHEET EXIT CONFIRMATION
 // =========================================================
-const exitModal = document.getElementById("exitModal");
+const exitSheet = document.getElementById("exitSheet");
 const cancelExitBtn = document.getElementById("cancelExitBtn");
 const confirmExitBtn = document.getElementById("confirmExitBtn");
 
-cancelExitBtn.addEventListener("click", () => {
-  exitModal.classList.add("hidden");
+cancelExitBtn.addEventListener("click", () => exitSheet.classList.add("hidden"));
+exitSheet.addEventListener("click", (e) => {
+  if (e.target === exitSheet) exitSheet.classList.add("hidden");
 });
 
 confirmExitBtn.addEventListener("click", () => {
-  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+  if (window.Capacitor?.Plugins?.App) {
     window.Capacitor.Plugins.App.exitApp();
   } else {
     window.close();
   }
 });
 
-// Daftarkan listener tombol Back hardware Android
-document.addEventListener("deviceready", setupBackButton, false);
-window.addEventListener("load", setupBackButton);
-
-let backListenerRegistered = false;
-function setupBackButton() {
-  if (backListenerRegistered) return;
-  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-    backListenerRegistered = true;
+let backRegistered = false;
+function initBackHandler() {
+  if (backRegistered) return;
+  if (window.Capacitor?.Plugins?.App) {
+    backRegistered = true;
     window.Capacitor.Plugins.App.addListener("backButton", () => {
-      // 1. Jika modal exit terbuka, tutup modal
-      if (!exitModal.classList.contains("hidden")) {
-        exitModal.classList.add("hidden");
+      if (!exitSheet.classList.contains("hidden")) {
+        exitSheet.classList.add("hidden");
         return;
       }
-      // 2. Jika sedang di tab Riwayat, kembalikan ke Beranda dulu
-      const historyView = document.getElementById("historyView");
-      if (!historyView.classList.contains("hidden")) {
-        switchMainView("homeView");
+      if (!document.getElementById("historyView").classList.contains("hidden")) {
+        switchDockView("homeView");
         return;
       }
-      // 3. Tampilkan konfirmasi keluar
-      exitModal.classList.remove("hidden");
+      exitSheet.classList.remove("hidden");
     });
   }
 }
+document.addEventListener("deviceready", initBackHandler, false);
+window.addEventListener("load", initBackHandler);
 
 // =========================================================
-// 3. NAVIGASI BERANDA & RIWAYAT UNDUHAN
+// 3. FLOATING DOCK NAVIGATION
 // =========================================================
-const navBtns = document.querySelectorAll(".nav-btn");
+const dockBtns = document.querySelectorAll(".dock-btn");
 const viewSections = document.querySelectorAll(".view-section");
 
-function switchMainView(targetId) {
-  navBtns.forEach((b) => {
-    b.classList.toggle("active", b.dataset.view === targetId);
-  });
-  viewSections.forEach((sec) => {
-    sec.classList.toggle("hidden", sec.id !== targetId);
-  });
-  if (targetId === "historyView") {
-    renderHistory();
-  }
+function switchDockView(targetId) {
+  dockBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.view === targetId));
+  viewSections.forEach((sec) => sec.classList.toggle("hidden", sec.id !== targetId));
+  if (targetId === "historyView") renderHistory();
 }
 
-navBtns.forEach((btn) => {
-  btn.addEventListener("click", () => switchMainView(btn.dataset.view));
+dockBtns.forEach((btn) => {
+  btn.addEventListener("click", () => switchDockView(btn.dataset.view));
 });
 
 // =========================================================
-// 4. MULTI-PLATFORM MEDIA EXTRACTOR (TIKTOK, YT, PINTEREST, WEB)
+// 4. INPUT & MULTI-PLATFORM EXTRACTOR
 // =========================================================
 const urlInput = document.getElementById("mediaUrl");
+const clearInputBtn = document.getElementById("clearInputBtn");
 const pasteBtn = document.getElementById("pasteBtn");
 const fetchBtn = document.getElementById("fetchBtn");
 const statusMsg = document.getElementById("statusMsg");
@@ -137,46 +120,59 @@ const authorName = document.getElementById("authorName");
 const videoTitle = document.getElementById("videoTitle");
 const musicTitle = document.getElementById("musicTitle");
 
-const tabBtns = document.querySelectorAll(".tab-btn");
+const segBtns = document.querySelectorAll(".seg-btn");
 const videoOptions = document.getElementById("videoOptions");
 const audioOptions = document.getElementById("audioOptions");
 const downloadBtn = document.getElementById("downloadBtn");
+const downloadBtnLabel = document.getElementById("downloadBtnLabel");
 
 const progressWrapper = document.getElementById("progressWrapper");
+const progressStatus = document.getElementById("progressStatus");
+const progressSpeed = document.getElementById("progressSpeed");
 const progressFill = document.getElementById("progressFill");
-const progressText = document.getElementById("progressText");
 
 let currentMedia = null;
 let selectedFormat = "video";
 
-const DEFAULT_THUMB = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='160' fill='%2314141d'><rect width='100%' height='100%'/><text x='50%' y='50%' fill='%2306b6d4' font-family='sans-serif' font-size='14' text-anchor='middle'>MEDIA</text></svg>";
+const DEFAULT_THUMB = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='160' fill='%2312141c'><rect width='100%' height='100%'/><text x='50%' y='52%' fill='%2338bdf8' font-family='sans-serif' font-size='13' font-weight='bold' text-anchor='middle'>MEDIA</text></svg>";
+
+urlInput.addEventListener("input", () => {
+  clearInputBtn.classList.toggle("hidden", !urlInput.value.trim());
+});
+
+clearInputBtn.addEventListener("click", () => {
+  urlInput.value = "";
+  clearInputBtn.classList.add("hidden");
+  hideError();
+});
 
 pasteBtn.addEventListener("click", async () => {
   try {
     const text = await navigator.clipboard.readText();
     if (text) {
       urlInput.value = text.trim();
+      clearInputBtn.classList.remove("hidden");
       hideError();
     }
   } catch (e) {
-    showError("Izin clipboard ditolak. Tempel link secara manual.");
+    showError("Izin clipboard dibatasi sistem. Tempel tautan secara manual.");
   }
 });
 
-tabBtns.forEach((btn) => {
+segBtns.forEach((btn) => {
   btn.addEventListener("click", () => {
-    tabBtns.forEach((b) => b.classList.remove("active"));
+    segBtns.forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
     selectedFormat = btn.dataset.type;
 
     if (selectedFormat === "video") {
       videoOptions.classList.remove("hidden");
       audioOptions.classList.add("hidden");
-      downloadBtn.textContent = "Download Video ke Galeri";
+      downloadBtnLabel.textContent = "Simpan ke Galeri";
     } else {
       videoOptions.classList.add("hidden");
       audioOptions.classList.remove("hidden");
-      downloadBtn.textContent = "Download MP3 ke Musik";
+      downloadBtnLabel.textContent = "Simpan MP3 ke Musik";
     }
   });
 });
@@ -188,14 +184,14 @@ function detectPlatform(url) {
   if (u.includes("pinterest.com") || u.includes("pin.it")) return "Pinterest";
   if (u.includes("instagram.com")) return "Instagram";
   if (u.includes("facebook.com") || u.includes("fb.watch")) return "Facebook";
-  if (u.includes("twitter.com") || u.includes("x.com")) return "X / Twitter";
-  return "Web Video";
+  if (u.includes("twitter.com") || u.includes("x.com")) return "X";
+  return "Web";
 }
 
 fetchBtn.addEventListener("click", async () => {
   const rawLink = urlInput.value.trim();
   if (!rawLink || !rawLink.startsWith("http")) {
-    showError("Masukkan link video yang valid (diawali http:// atau https://)");
+    showError("Masukkan tautan valid yang diawali http:// atau https://");
     return;
   }
 
@@ -203,12 +199,11 @@ fetchBtn.addEventListener("click", async () => {
   hideError();
   resultCard.classList.add("hidden");
   loader.classList.remove("hidden");
-  loaderText.textContent = `Mengambil data dari ${platform}...`;
+  loaderText.textContent = `Menganalisis stream ${platform}...`;
   fetchBtn.disabled = true;
 
   try {
     let extracted = null;
-
     if (platform === "TikTok") {
       extracted = await extractTikTok(rawLink);
     } else if (platform === "Pinterest") {
@@ -220,112 +215,101 @@ fetchBtn.addEventListener("click", async () => {
     }
 
     if (!extracted || (!extracted.videos.length && !extracted.audioUrl)) {
-      throw new Error("Media tidak ditemukan atau tautan bersifat privat.");
+      throw new Error("Media tidak ditemukan atau akun bersifat privat.");
     }
 
     currentMedia = extracted;
     renderResultCard(extracted);
   } catch (err) {
-    showError(err.message || "Gagal memproses link. Coba periksa koneksi atau link lain.");
+    showError(err.message || "Gagal mengambil data media.");
   } finally {
     loader.classList.add("hidden");
     fetchBtn.disabled = false;
   }
 });
 
-// A. Extractor TikTok (HD, SD, Watermark, MP3)
 async function extractTikTok(url) {
   const res = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`);
   const json = await res.json();
-  if (json.code !== 0 || !json.data) {
-    throw new Error(json.msg || "Video TikTok tidak dapat diakses.");
-  }
+  if (json.code !== 0 || !json.data) throw new Error(json.msg || "Video TikTok tidak dapat diakses.");
 
   const d = json.data;
   const videos = [];
-  if (d.hdplay) videos.push({ label: "Kualitas HD (1080p)", desc: "Tanpa Watermark • Jernih", url: d.hdplay });
-  if (d.play) videos.push({ label: "Kualitas SD (Standar)", desc: "Tanpa Watermark • Hemat Kuota", url: d.play });
-  if (d.wmplay) videos.push({ label: "Original Watermark", desc: "Dengan Watermark TikTok", url: d.wmplay });
+  if (d.hdplay) videos.push({ label: "Full HD Tanpa Watermark", desc: "Bitrate tinggi • Jernih", tag: "1080P", url: d.hdplay });
+  if (d.play) videos.push({ label: "Standar Tanpa Watermark", desc: "Ukuran ringkas • Cepat", tag: "720P", url: d.play });
+  if (d.wmplay) videos.push({ label: "Original Watermark", desc: "Versi bawaan TikTok", tag: "WM", url: d.wmplay });
 
   return {
     id: d.id || Date.now(),
     platform: "TikTok",
+    referer: "https://www.tiktok.com/",
     title: d.title || "Video TikTok",
     author: `@${d.author?.unique_id || "tiktok"}`,
     thumbnail: d.cover || DEFAULT_THUMB,
     videos,
     audioUrl: d.music || d.play,
     audioTitle: d.music_info?.title || "Original Sound TikTok",
-    originalUrl: url,
   };
 }
 
-// B. Extractor Pinterest (Direct HTML Stream Parser + Fallback API)
 async function extractPinterest(url) {
   try {
     const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36" }
+      headers: { "User-Agent": "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/126.0.0.0 Mobile Safari/537.36" }
     });
     const html = await res.text();
-
     const mp4Matches = [...html.matchAll(/https:\/\/v1\.pinimg\.com\/videos\/[^"'\s\\]+\.mp4/g)];
     const uniqueUrls = [...new Set(mp4Matches.map((m) => m[0]))];
-
     const titleMatch = html.match(/<meta property="og:title" content="([^"]+)"/i);
     const imgMatch = html.match(/<meta property="og:image" content="([^"]+)"/i);
 
     if (uniqueUrls.length > 0) {
       const hdUrl = uniqueUrls.find((u) => u.includes("720p")) || uniqueUrls[0];
       const videos = uniqueUrls.map((u, i) => ({
-        label: u.includes("720p") ? "Kualitas HD (720p MP4)" : `Video Pinterest #${i + 1}`,
-        desc: "Direct Stream Pinterest • Tanpa Watermark",
+        label: u.includes("720p") ? "Pinterest HD Stream" : `Pinterest Stream #${i + 1}`,
+        desc: "Tanpa Watermark • Direct CDN",
+        tag: u.includes("720p") ? "720P" : "MP4",
         url: u,
       }));
 
       return {
         id: Date.now(),
         platform: "Pinterest",
+        referer: "https://www.pinterest.com/",
         title: titleMatch ? titleMatch[1] : "Video Pinterest",
-        author: "Pinterest Pin",
+        author: "Pinterest",
         thumbnail: imgMatch ? imgMatch[1] : DEFAULT_THUMB,
         videos,
         audioUrl: hdUrl,
-        audioTitle: "Audio dari Video Pinterest",
-        originalUrl: url,
+        audioTitle: "Audio Video Pinterest",
       };
     }
-  } catch (e) {
-    // Lanjut ke multi-platform fallback
-  }
+  } catch (e) {}
   return extractMultiPlatform(url, "Pinterest");
 }
 
-// C. Extractor Direct File Link (.mp4 / .mp3 dari situs mana pun)
 function extractDirectFile(url, platform) {
   const isAudio = /\.(mp3|m4a)(\?.*)?$/i.test(url);
   const fileName = url.split("/").pop().split("?")[0] || "Direct Media";
-
   return {
     id: Date.now(),
     platform,
+    referer: "",
     title: decodeURIComponent(fileName),
     author: new URL(url).hostname,
     thumbnail: DEFAULT_THUMB,
-    videos: isAudio ? [] : [{ label: "Original Direct Video", desc: "Kualitas Asli Sumber Web", url }],
+    videos: isAudio ? [] : [{ label: "Direct Original File", desc: "Sumber langsung dari server web", tag: "MP4", url }],
     audioUrl: url,
     audioTitle: decodeURIComponent(fileName),
-    originalUrl: url,
   };
 }
 
-// D. Extractor YouTube, IG, FB, X & Situs Web Lainnya (Multi-Provider + OG Scraper)
 async function extractMultiPlatform(url, platform) {
-  // Provider 1: VKR Multi-Platform API (mendukung YouTube, FB, IG, Twitter, dll)
   try {
     const res = await fetch(`https://vkrdownloader.xyz/server?api_key=vkrdownloader&vkr=${encodeURIComponent(url)}`);
     const json = await res.json();
 
-    if (json && json.data && Array.isArray(json.data.downloads) && json.data.downloads.length > 0) {
+    if (json?.data?.downloads?.length > 0) {
       const d = json.data;
       const videos = [];
       let audioUrl = "";
@@ -333,14 +317,15 @@ async function extractMultiPlatform(url, platform) {
       d.downloads.forEach((item) => {
         if (!item.url) return;
         const ext = (item.ext || "").toLowerCase();
-        const fmt = item.format_id || item.quality || "HD";
+        const fmt = String(item.format_id || item.quality || "HD").toUpperCase();
 
-        if (ext === "mp3" || ext === "m4a" || String(fmt).toLowerCase().includes("audio")) {
+        if (ext === "mp3" || ext === "m4a" || fmt.includes("AUDIO")) {
           if (!audioUrl) audioUrl = item.url;
         } else if (ext === "mp4" || !ext) {
           videos.push({
-            label: `Video ${fmt.toUpperCase()}`,
-            desc: `${platform} • Format MP4 ${item.size ? `(${item.size})` : ""}`,
+            label: `Kualitas ${fmt}`,
+            desc: `${platform} ${item.size ? `• ${item.size}` : "• MP4 Stream"}`,
+            tag: fmt.slice(0, 6),
             url: item.url,
           });
         }
@@ -350,50 +335,40 @@ async function extractMultiPlatform(url, platform) {
         return {
           id: Date.now(),
           platform,
+          referer: "",
           title: d.title || `Media ${platform}`,
           author: d.source || platform,
           thumbnail: d.thumbnail || DEFAULT_THUMB,
           videos: videos.slice(0, 4),
-          audioUrl: audioUrl || (videos[0] ? videos[0].url : ""),
+          audioUrl: audioUrl || videos[0]?.url || "",
           audioTitle: d.title || `Audio ${platform}`,
-          originalUrl: url,
         };
       }
     }
-  } catch (e) {
-    // Lanjut ke Provider 2
-  }
+  } catch (e) {}
 
-  // Provider 2: Cobalt Open API
   try {
     const res = await fetch("https://api.cobalt.tools/", {
       method: "POST",
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-      },
+      headers: { "Accept": "application/json", "Content-Type": "application/json" },
       body: JSON.stringify({ url, videoQuality: "1080" }),
     });
     const json = await res.json();
-
-    if (json && json.url) {
+    if (json?.url) {
       return {
         id: Date.now(),
         platform,
+        referer: "",
         title: json.filename || `Video ${platform}`,
         author: platform,
         thumbnail: DEFAULT_THUMB,
-        videos: [{ label: "Kualitas Terbaik (HD MP4)", desc: `Direct Stream ${platform}`, url: json.url }],
+        videos: [{ label: "Kualitas Terbaik", desc: `Direct Stream ${platform}`, tag: "HD", url: json.url }],
         audioUrl: json.url,
         audioTitle: `Audio ${platform}`,
-        originalUrl: url,
       };
     }
-  } catch (e) {
-    // Lanjut ke Web Meta Scraper
-  }
+  } catch (e) {}
 
-  // Provider 3: Generic Website Video Scraper (<meta property="og:video"> / <video src>)
   const pageRes = await fetch(url);
   const html = await pageRes.text();
   const ogVideo = html.match(/<meta[^>]+property=["']og:video(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i);
@@ -401,28 +376,27 @@ async function extractMultiPlatform(url, platform) {
   const foundVideo = ogVideo ? ogVideo[1] : videoSrc ? videoSrc[1] : null;
 
   if (foundVideo) {
-    const absoluteVideoUrl = new URL(foundVideo, url).href;
+    const absUrl = new URL(foundVideo, url).href;
     const ogTitle = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i);
     const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
-
     return {
       id: Date.now(),
       platform,
+      referer: url,
       title: ogTitle ? ogTitle[1] : `Video dari ${new URL(url).hostname}`,
       author: new URL(url).hostname,
       thumbnail: ogImage ? ogImage[1] : DEFAULT_THUMB,
-      videos: [{ label: "Video Web (MP4)", desc: "Diekstrak langsung dari halaman web", url: absoluteVideoUrl }],
-      audioUrl: absoluteVideoUrl,
-      audioTitle: "Audio dari Halaman Web",
-      originalUrl: url,
+      videos: [{ label: "Web Video Stream", desc: "Diekstrak dari halaman web", tag: "MP4", url: absUrl }],
+      audioUrl: absUrl,
+      audioTitle: "Audio Halaman Web",
     };
   }
 
-  throw new Error(`Link ${platform} tidak didukung atau diproteksi DRM/Login.`);
+  throw new Error(`Tautan ${platform} tidak didukung atau memerlukan login.`);
 }
 
 // =========================================================
-// 5. RENDER HASIL ANALISIS & EKSEKUSI DOWNLOAD
+// 5. RENDER HASIL & HIGH-SPEED NATIVE STREAM DOWNLOAD
 // =========================================================
 function renderResultCard(media) {
   thumbImg.src = media.thumbnail || DEFAULT_THUMB;
@@ -434,20 +408,23 @@ function renderResultCard(media) {
 
   videoOptions.innerHTML = "";
   if (media.videos.length > 0) {
-    media.videos.forEach((v, index) => {
+    media.videos.forEach((v, idx) => {
       const label = document.createElement("label");
-      label.className = "option-item";
+      label.className = "quality-item";
       label.innerHTML = `
-        <input type="radio" name="quality" value="${index}" ${index === 0 ? "checked" : ""} />
-        <div class="option-box">
-          <span class="opt-title">${v.label}</span>
-          <span class="opt-desc">${v.desc}</span>
+        <input type="radio" name="quality" value="${idx}" ${idx === 0 ? "checked" : ""} />
+        <div class="quality-card">
+          <div class="q-left">
+            <span class="q-title">${v.label}</span>
+            <span class="q-desc">${v.desc}</span>
+          </div>
+          <span class="q-tag">${v.tag || "MP4"}</span>
         </div>
       `;
       videoOptions.appendChild(label);
     });
   } else {
-    videoOptions.innerHTML = `<div class="audio-box"><span class="opt-desc">Hanya format audio yang tersedia untuk link ini.</span></div>`;
+    videoOptions.innerHTML = `<div class="quality-card"><span class="q-desc">Hanya tersedia format audio untuk tautan ini.</span></div>`;
   }
 
   progressWrapper.classList.add("hidden");
@@ -458,7 +435,7 @@ downloadBtn.addEventListener("click", async () => {
   if (!currentMedia) return;
 
   let targetUrl = "";
-  let qualityLabel = "MP3 Audio";
+  let qualityLabel = "MP3";
   let ext = "mp4";
 
   if (selectedFormat === "audio") {
@@ -473,45 +450,54 @@ downloadBtn.addEventListener("click", async () => {
       return;
     }
     targetUrl = chosen.url;
-    qualityLabel = chosen.label;
+    qualityLabel = chosen.tag || chosen.label;
     ext = "mp4";
   }
 
-  const safePlatform = currentMedia.platform.toLowerCase().replace(/[^a-z0-9]/g, "");
-  const fileName = `${safePlatform}_${Date.now()}.${ext}`;
-
-  await processDownloadAndMoveToHistory(targetUrl, fileName, qualityLabel, ext);
+  const safePrefix = currentMedia.platform.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const fileName = `${safePrefix}_${Date.now()}.${ext}`;
+  await executeFastDownload(targetUrl, fileName, qualityLabel, ext);
 });
 
-async function processDownloadAndMoveToHistory(url, fileName, qualityLabel, ext) {
+async function executeFastDownload(url, fileName, qualityLabel, ext) {
   downloadBtn.disabled = true;
   hideError();
   progressWrapper.classList.remove("hidden");
-  progressFill.style.width = "20%";
-  progressText.textContent = "Mengunduh media...";
+  progressFill.style.width = "8%";
+  progressStatus.textContent = "Menghubungkan stream...";
+  progressSpeed.textContent = "Turbo";
+
+  const mimeType = ext === "mp3" ? "audio/mpeg" : "video/mp4";
+  let savedFolder = ext === "mp3" ? "Music/MediaVault" : "Movies/MediaVault";
+  let progressListener = null;
 
   try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Gagal mengambil stream file dari server.");
+    if (window.Capacitor?.Plugins?.MediaSaver?.downloadAndSave) {
+      // Dengarkan kecepatan & persentase langsung dari Native Java Thread
+      progressListener = await window.Capacitor.Plugins.MediaSaver.addListener("downloadProgress", (data) => {
+        if (data.percent > 0) {
+          progressFill.style.width = `${data.percent}%`;
+          progressStatus.textContent = `Mengunduh ${data.percent}% (${data.downloadedMB} MB)`;
+        } else {
+          progressFill.style.width = "65%";
+          progressStatus.textContent = `Mengunduh ${data.downloadedMB} MB...`;
+        }
+        progressSpeed.textContent = data.speed || "";
+      });
 
-    progressFill.style.width = "60%";
-    const blob = await response.blob();
-    const mimeType = ext === "mp3" ? "audio/mpeg" : "video/mp4";
-    let savedFolder = ext === "mp3" ? "Music/MediaDownloader" : "Movies/MediaDownloader";
-
-    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.MediaSaver) {
-      progressFill.style.width = "85%";
-      progressText.textContent = "Menyimpan ke Galeri HP...";
-
-      const base64Data = await blobToBase64(blob);
-      const res = await window.Capacitor.Plugins.MediaSaver.saveMedia({
-        base64Data,
+      const res = await window.Capacitor.Plugins.MediaSaver.downloadAndSave({
+        url,
         fileName,
         mimeType,
+        referer: currentMedia.referer || "",
       });
-      if (res && res.folder) savedFolder = res.folder;
+
+      if (res?.folder) savedFolder = res.folder;
     } else {
-      // Fallback jika diuji lewat browser biasa
+      // Fallback jika dites di browser Acode
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Gagal mengambil media.");
+      const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;
@@ -519,12 +505,12 @@ async function processDownloadAndMoveToHistory(url, fileName, qualityLabel, ext)
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 4000);
     }
 
     progressFill.style.width = "100%";
 
-    // 1. SIMPAN KE RIWAYAT UNDUHAN
+    // Simpan ke Riwayat Unduhan
     addToHistory({
       id: Date.now(),
       platform: currentMedia.platform,
@@ -537,36 +523,35 @@ async function processDownloadAndMoveToHistory(url, fileName, qualityLabel, ext)
       date: new Date().toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }),
     });
 
-    // 2. OTOMATIS HILANGKAN DARI BERANDA & BERSIHKAN INPUT
+    // Bersihkan Beranda otomatis
     resultCard.classList.add("hidden");
     progressWrapper.classList.add("hidden");
     urlInput.value = "";
+    clearInputBtn.classList.add("hidden");
     currentMedia = null;
 
-    showToast("Tersimpan di Galeri & dipindahkan ke Riwayat!");
+    showToast("Tersimpan di Galeri & masuk ke Riwayat");
   } catch (err) {
-    showError("Gagal mengunduh: " + (err.message || err));
+    showError(err.message || "Gagal mengunduh file.");
     progressWrapper.classList.add("hidden");
   } finally {
+    if (progressListener) progressListener.remove();
     downloadBtn.disabled = false;
   }
 }
 
 // =========================================================
-// 6. MANAJEMEN RIWAYAT UNDUHAN (LOCALSTORAGE)
+// 6. MANAJEMEN RIWAYAT UNDUHAN
 // =========================================================
-const HISTORY_KEY = "mediavault_download_history";
+const HISTORY_KEY = "mediavault_pro_history";
 const historyList = document.getElementById("historyList");
 const emptyHistory = document.getElementById("emptyHistory");
 const historyBadge = document.getElementById("historyBadge");
 const clearHistoryBtn = document.getElementById("clearHistoryBtn");
 
 function getHistory() {
-  try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
-  } catch (e) {
-    return [];
-  }
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
+  catch (e) { return []; }
 }
 
 function addToHistory(item) {
@@ -576,21 +561,16 @@ function addToHistory(item) {
   renderHistory();
 }
 
-function deleteHistoryItem(id) {
-  const list = getHistory().filter((item) => item.id !== id);
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
-  renderHistory();
-}
-
 clearHistoryBtn.addEventListener("click", () => {
   localStorage.removeItem(HISTORY_KEY);
   renderHistory();
-  showToast("Riwayat unduhan dibersihkan");
+  showToast("Riwayat dibersihkan");
 });
 
 function renderHistory() {
   const list = getHistory();
   historyBadge.textContent = list.length;
+  historyBadge.classList.toggle("hidden", list.length === 0);
 
   if (list.length === 0) {
     historyList.innerHTML = "";
@@ -604,42 +584,35 @@ function renderHistory() {
   historyList.innerHTML = "";
 
   list.forEach((item) => {
-    const el = document.createElement("div");
-    el.className = "history-item";
-    el.innerHTML = `
-      <img class="history-thumb" src="${item.thumbnail || DEFAULT_THUMB}" onerror="this.src='${DEFAULT_THUMB}'" alt="Thumb" />
-      <div class="history-body">
-        <div class="history-badges">
-          <span class="h-badge platform">${item.platform}</span>
-          <span class="h-badge">${item.ext} • ${item.quality}</span>
+    const card = document.createElement("div");
+    card.className = "history-card";
+    card.innerHTML = `
+      <img src="${item.thumbnail || DEFAULT_THUMB}" onerror="this.src='${DEFAULT_THUMB}'" alt="Thumb" />
+      <div class="h-info">
+        <div class="h-tags">
+          <span class="h-tag">${item.platform}</span>
+          <span class="h-tag green">${item.ext} • ${item.quality}</span>
         </div>
-        <div class="history-title">${item.title}</div>
-        <div class="history-path">${item.folder}/${item.fileName}</div>
-        <div class="history-path">${item.date}</div>
+        <div class="h-title">${item.title}</div>
+        <div class="h-sub">${item.folder}/${item.fileName}</div>
+        <div class="h-sub">${item.date}</div>
       </div>
-      <button type="button" class="btn-del-item" title="Hapus dari riwayat">&times;</button>
+      <button type="button" class="btn-remove-h" title="Hapus">&times;</button>
     `;
 
-    el.querySelector(".btn-del-item").addEventListener("click", () => {
-      deleteHistoryItem(item.id);
+    card.querySelector(".btn-remove-h").addEventListener("click", () => {
+      const updated = getHistory().filter((x) => x.id !== item.id);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+      renderHistory();
     });
 
-    historyList.appendChild(el);
+    historyList.appendChild(card);
   });
 }
 
 // =========================================================
 // 7. UTILITAS
 // =========================================================
-function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result.split(",")[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
 function showError(msg) {
   statusMsg.textContent = msg;
   statusMsg.classList.remove("hidden");
@@ -651,9 +624,7 @@ function hideError() {
 
 function showToast(msg) {
   const toast = document.getElementById("toast");
-  toast.textContent = msg;
+  document.getElementById("toastText").textContent = msg;
   toast.classList.remove("hidden");
-  setTimeout(() => {
-    toast.classList.add("hidden");
-  }, 3000);
+  setTimeout(() => toast.classList.add("hidden"), 2800);
 }
